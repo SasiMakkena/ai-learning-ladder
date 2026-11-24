@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1433">
+<title>AI Learning Ladder</title>
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@500;800&family=Red+Hat+Text:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a calm study coach; one thing on screen at a time, short lines
+   IDEA: a weather-scale ladder, cool blue (beginner) to hot red (expert)
+   PICTURE: the ten rising steps on Today; each card in practice wears its level's colour
+   COLOUR and TYPE: navy ground; scale #3b4fd8, #4fc1c6, #f7e463, #e8452c; Red Hat Display + Text, Roboto fallback
+   LAYOUT: Android app: top bar, one screen, bottom nav in thumb reach, bottom sheets for dialogs */
+:root{color-scheme:dark;--bg:#0b1433;--s1:#111c44;--s2:#17245a;--line:#26357a;--ink:#eef1ff;--mute:#a9b3dd;--ok:#4fc1c6;--bad:#e8452c;--acc:#f7e463;--lc:#4fc1c6}
+.item h3,.card .term,.lt{color:color-mix(in srgb,var(--lc) 72%,white)}
+:root[data-theme=light],:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Red Hat Text",Roboto,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Red Hat Display",Roboto,system-ui,sans-serif;margin:0;text-wrap:balance;font-weight:800}
+h1{font-size:32px;line-height:1.05}h2{font-size:24px;line-height:1.15}h3{font-size:20px;line-height:1.2}
+button{font:inherit;color:inherit}
+.top{position:sticky;top:0;z-index:4;background:var(--bg);display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;border-bottom:1px solid var(--line)}
+.top h2{font-size:20px;flex:1}
+.pill{font-size:13px;font-weight:600;padding:4px 10px;border-radius:12px;background:var(--s2);color:var(--mute);white-space:nowrap}
+main{max-width:720px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
+.muted{color:var(--mute)}.small{font-size:13px}
+.ladder{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;align-items:end;height:200px;margin:16px 0 8px}
+.step{border:0;border-radius:8px 8px 3px 3px;padding:6px 2px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.25);cursor:pointer}
+.step b{font:800 18px/1 "Red Hat Display",Roboto,sans-serif}.step i{font-style:normal;font-size:9px;letter-spacing:0}
+.step.on{outline:3px solid #fff;outline-offset:2px}
+.big{width:100%;min-height:56px;border:0;border-radius:28px;background:var(--acc);color:#0b1433;font-weight:600;font-size:17px;cursor:pointer;margin-top:12px}
+.ghost{min-height:48px;padding:0 18px;border-radius:24px;border:1px solid var(--line);background:var(--s1);font-weight:600;cursor:pointer}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.row>*{flex:1 1 0}
+.stat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
+.stat div{background:var(--s1);border-radius:14px;padding:12px}.stat b{display:block;font:800 26px/1.1 "Red Hat Display",Roboto,sans-serif}
+.list{margin-top:8px}
+.item{display:block;width:100%;text-align:left;background:none;border:0;border-left:4px solid var(--lc);padding:14px 0 14px 14px;margin:0 0 10px;cursor:pointer}
+.lab{display:block;font-size:13px;font-weight:600;color:var(--mute);margin-top:6px}
+.card{background:var(--s1);border:2px solid var(--lc);border-radius:20px;padding:24px 20px;min-height:220px;display:flex;flex-direction:column;justify-content:center;gap:8px;margin-top:12px}
+.card .term{font:800 34px/1.1 "Red Hat Display",Roboto,sans-serif;color:color-mix(in srgb,var(--lc) 72%,white)}
+.grade{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px;position:sticky;bottom:calc(80px + env(safe-area-inset-bottom));background:var(--bg);padding:8px 0;z-index:3}
+.grade button{min-height:56px;border-radius:16px;border:0;font-weight:600;cursor:pointer}
+.g0{background:rgba(232,69,44,.22);border:1px solid var(--bad)!important}.g1{background:var(--s2)}.g2{background:rgba(79,193,198,.22);border:1px solid var(--ok)!important}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:4px 0 8px}.bar>div{height:100%;background:var(--lc);transition:width .25s}
+.opt{display:block;width:100%;min-height:56px;text-align:left;padding:12px 16px;margin-top:8px;border-radius:14px;border:1px solid var(--line);background:var(--s1);cursor:pointer}
+.opt.right{border-color:var(--ok);background:rgba(79,193,198,.2)}.opt.wrong{border-color:var(--bad);background:rgba(232,69,44,.2)}
+.fb{margin-top:12px;padding:14px;border-radius:14px;background:var(--s1);border-left:4px solid var(--lc)}
+.ans{width:100%;font:17px "Red Hat Text",Roboto,sans-serif;color:var(--ink);background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:12px;min-height:52px}
+textarea.ans{min-height:96px;resize:vertical}
+.verdict{margin-top:12px;padding:14px;border-radius:14px;background:var(--s1)}
+.verdict.right{border-left:4px solid var(--ok)}.verdict.partly{border-left:4px solid var(--acc)}.verdict.wrong{border-left:4px solid var(--bad)}
+.ki{display:block;margin-top:4px}.ki.y::before{content:"\2713  ";color:var(--ok);font-weight:800}.ki.n::before{content:"\2717  ";color:var(--bad);font-weight:800}
+.grade button.sug{outline:3px solid var(--acc);outline-offset:2px}
+.link{background:none;border:0;color:var(--mute);text-decoration:underline;padding:10px 0;cursor:pointer;font-size:14px}
+input[type=search],textarea{width:100%;font:16px "Red Hat Text",Roboto,sans-serif;color:var(--ink);background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+input[type=search]{min-height:48px;border-radius:24px}textarea{min-height:110px;resize:vertical}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.tag{min-height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--line);background:var(--s1);cursor:pointer;font-size:14px}
+.tag[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--s1);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+nav button{border:0;background:none;min-height:56px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:600;color:var(--mute);cursor:pointer}
+nav button svg{width:24px;height:24px}
+nav button[aria-current=page]{color:var(--ink)}nav button[aria-current=page] span.ic{background:var(--s2)}
+nav span.ic{display:flex;padding:2px 18px;border-radius:14px}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:8;display:none}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto;transform:translateY(100%);transition:transform .25s}
+.sheet.open{transform:none}.scrim.open{display:block}
+.handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:-8px auto 12px}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;z-index:10;display:none}
+button:focus-visible,.opt:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.sheet,.bar>div{transition:none}}
+</style>
+</head>
+<body>
+<header class="top"><h2 id="ttl">Today</h2><span class="pill" id="streak"></span></header>
+<main id="app"></main>
+<nav id="nav">
+ <button data-v="today"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V7M16 20V4M22 20H2"/></svg></span>Today</button>
+ <button data-v="learn"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4zM20 5h-4a2 2 0 0 0-2 2"/></svg></span>Learn</button>
+ <button data-v="practice"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="14" height="14" rx="2"/><path d="M8 3h12v12"/></svg></span>Practice</button>
+ <button data-v="quiz"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.5"/></svg></span>Quiz</button>
+ <button data-v="more"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></span>More</button>
+</nav>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+{
+const L=[
+{name:"What AI is",terms:[
+["AI","Computers doing tasks that normally need human thinking, like understanding words or spotting patterns.","A well-read assistant who learned from examples, not from rules you wrote.","Claude answering \"who is acting director today?\""],
+["Machine learning","Teaching a computer by showing it lots of examples instead of writing rules.","Learning to ride a bike by practice, not by reading the manual.","A spam filter that learned what junk mail looks like."],
+["Model","The trained brain that does the thinking.","The engine of a car. The app around it is the body.","Opus 5.5 is the model; claude.ai is the car."],
+["Chatbot","An app where you talk to a model by typing or speaking.","A front-desk window where you ask questions.","This chat."],
+["Prompt","What you type to ask the model for something.","Your order to a waiter. A clear order gets a better meal.","\"What's still open?\""]]},
+{name:"How language models think",terms:[
+["LLM","Large language model: a model trained on huge amounts of text to read and write language.","Autocomplete that read a whole library and got very good at it.","Claude, GPT and Gemini are LLMs."],
+["Training","The long, one-time process where a model learns from data.","Years of school before the first day at work.","Happens before you ever use Claude."],
+["Token","A small chunk of text, about three quarters of a word, that the model reads and writes.","Lego bricks of language.","Limits and prices are counted in tokens."],
+["Hallucination","When a model states something false with confidence.","A student bluffing an exam answer.","Why we have Claude cite sources and check files."],
+["Knowledge cutoff","The date the model's training knowledge stops.","Yesterday's newspaper: great until things change.","Why Claude searches the web for today's prices."]]},
+{name:"Asking well",terms:[
+["Instructions","Standing rules the model gets before the chat starts (also called a system prompt).","The rule poster on the wall.","Project instructions: read house-rules.md first."],
+["Context","Everything the model can see right now when it answers.","What's on the desk in front of the worker.","Your files plus the chat so far."],
+["Few-shot examples","Showing one or two finished examples of what you want.","Showing a new hire two filled-in forms before they do one.","\"Format approvals like this example.\""],
+["Role","Telling the model who to act as.","Handing someone a name badge: today you're the auditor.","\"You are the administrator of Sunshine Daycare.\""],
+["Iteration","Improving a result through small back-and-forth fixes.","Seasoning soup: taste, adjust, taste again.","We rewrote the time rule after a test."]]},
+{name:"Memory and knowledge",terms:[
+["Context window","The most the model can hold in mind at once.","Counter space in a kitchen.","Why skills load only when needed."],
+["Project knowledge","Files attached to a project that every chat in it can read.","A shared binder on the office shelf.","The Context section of the project."],
+["RAG","Retrieval: looking up the right pieces of documents and feeding them to the model.","A librarian who fetches just the right pages.","Big project files get searched, not read whole."],
+["Embedding","Turning text into numbers so similar meanings sit close together.","A map where books on similar topics are neighbours.","How \"tuition\" finds the billing notes."],
+["Memory","Notes that survive after a chat ends.","A diary, not scratch paper.","open-items.md and log.md."]]},
+{name:"Tools: giving AI hands",terms:[
+["Tool use","The model asking to run an action, like reading a file or searching.","A chef who can pick up the knife, not just talk about cooking.","\"Read a file, listed files on your computer.\""],
+["API","A standard doorway one program uses to talk to another.","A restaurant's order window with a set menu.","The network system has an API; the childcare app doesn't publish one."],
+["Connector","A ready-made link between Claude and an app you use.","A travel adapter for one kind of plug.","The Microsoft 365 connector."],
+["MCP","Model Context Protocol: the open standard for plugging AI into tools and data.","USB-C for AI: one plug shape for many devices.","The network helpers are MCP servers."],
+["Web search","The model looking up current information online.","Calling the office to check today's schedule.","Checking a price before an approval."]]},
+{name:"Agents",terms:[
+["Agent","An AI that plans and takes steps with tools to reach a goal.","A helper you give a goal, not every single instruction.","\"Update open items and log it.\""],
+["Agent loop","Think, act with a tool, look at the result, repeat until done.","A cook who tastes after every step.","Claude reading files back to confirm they saved."],
+["Workflow","A fixed list of steps the AI follows the same way every time.","Following a recipe card exactly.","The nightly childcare-app export."],
+["Autonomy","How much an agent may do without asking first.","Curfew and car-key rules for a teen driver.","Your rule: ask only for money and safety items."],
+["Human-in-the-loop","A person approves the key steps.","The owner signing the checks.","Money approvals go to the Owner."]]},
+{name:"Agent building blocks",terms:[
+["Harness","Everything around the model: rules, tools, memory, checks.","The model is the engine; the harness is the rest of the car.","house-rules, open items, log and tools together."],
+["Skill","A folder of instructions loaded only when a task needs it.","A recipe opened only when that dish is ordered.","The planned money-approval skill."],
+["Subagent","A helper agent with its own job and a limited set of tools.","A specialist chef at one station.","A future network helper."],
+["Hook","Code that runs automatically at set moments and can block an action.","A guard checking every badge at the door.","Block deletes that have no approval."],
+["Scheduled task","A job that starts on its own at set times.","An alarm clock that wakes a helper.","The nightly childcare-app snapshot."]]},
+{name:"Files, code and versions",terms:[
+["Markdown","Plain text with simple marks for headings and bullets (.md files).","Handwriting with a few shorthand symbols.","house-rules.md."],
+["Git","A tool that saves snapshots of a folder over time.","A time machine for files.","Initialize Repository in VS Code."],
+["Commit","One saved snapshot with a short note.","A labelled photo in an album.","\"Add house rules, open items, and log.\""],
+["Repository","A project folder tracked by Git (a repo).","A recipe book that keeps every past edition.","sunshine-daycare-ai-admin."],
+["Push","Sending your snapshots to the cloud copy at a saved address (the remote).","Mailing a copy to the safe-deposit box.","git push to GitHub, nicknamed origin."]]},
+{name:"Safety and trust",terms:[
+["Least privilege","Give each worker only the access its job needs.","The cleaner gets the hallway key, not the safe key.","A view-only network account for the inventory job."],
+["Prompt injection","Hidden instructions inside content that try to steer the AI.","A forged note slipped into the mail: \"pay this invoice now.\"","Why Claude treats web pages as data, not orders."],
+["Guardrail","A rule or check that keeps actions safe.","Bumpers on a bowling lane.","\"Never put passwords in files.\""],
+["Approval gate","A step that stops and waits for a yes.","A locked door that needs the manager's key.","Approving a new monthly subscription."],
+["Audit log","A permanent record of who did what, and when.","The sign-in sheet at the front door.","log.md."]]},
+{name:"Running AI like a business",terms:[
+["Evals","Tests that measure whether the AI does the job right.","A driving test before you get the keys.","The fresh-session test: \"Who approves money?\""],
+["Checker","A separate agent that reviews another agent's work.","The head chef tasting before plates go out.","The planned checker helper."],
+["Orchestration","Coordinating several agents: who works, and in what order.","An orchestra conductor.","A main agent routing work to the network or billing helper."],
+["Observability","Being able to see what agents did and how it went.","The gauges on a car dashboard.","A run log of every nightly job."],
+["Agent governance","Owning, tracking and controlling every agent in an organisation.","HR files for robot workers.","Claude's own GitHub badge; Microsoft Agent 365."]]}
+];
+const WEBVER="2026.11.24-1",DAY=864e5,INT=[0,1,3,7,14,30];
+const stops=["#3b4fd8","#4fc1c6","#f7e463","#e8452c"];
+const hex=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
+const col=i=>{const t=i/9*3,k=Math.min(2,Math.floor(t)),f=t-k,a=hex(stops[k]),b=hex(stops[k+1]);return "rgb("+a.map((v,j)=>Math.round(v+(b[j]-v)*f)).join(",")+")"};
+const inkOn=i=>{const t=i/9;return t>.18&&t<.82?"#0b1433":"#ffffff"};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const all=[];L.forEach((l,li)=>l.terms.forEach((t,ti)=>all.push({li,id:li+"-"+ti,t:t[0],d:t[1],a:t[2],x:t[3]})));
+const byId=id=>all.find(t=>t.id===id);
+const KEYS=[
+[[["thinking tasks like a human","think|intellig|human|smart"],["understands words or spots patterns","language|word|pattern|understand|recogn"]],
+ [["learns from examples or data","example|data|learn|train"],["instead of hand-written rules","rule|instead|without|not program"]],
+ [["the trained brain","brain|trained|engine|model"],["does the thinking","think|answer|predict|process|work"]],
+ [["an app or program","app|program|tool|software|interface|website"],["you talk or type to it","talk|chat|type|ask|convers|speak|messag"]],
+ [["what you type or ask","type|ask|write|input|message|question|instruct|request"],["sent to the model","model|ai|claude|chatbot|bot"]]],
+[[["a model","model|ai"],["trained on lots of text","text|language|word|book|data|train"],["reads and writes language","writ|read|predict|generat|language|next word"]],
+ [["learning from data","learn|data|example|teach"],["done once, before use","once|before|ahead|long|first|upfront"]],
+ [["a small piece","piece|chunk|part|bit|small|unit|fragment"],["of text or a word","word|text|letter|character"]],
+ [["false or made up","false|wrong|made up|make up|invent|fake|untrue|incorrect|lie"],["said confidently","confiden|sure|convinc|as if"]],
+ [["a date","date|time|when|point"],["where training knowledge stops","stop|end|cut|knowledge|train|last"]]],
+[[["standing rules","rule|instruct|guid|direction"],["given before the chat","before|always|start|every|standing|system"]],
+ [["everything the model can see","see|know|info|everything|access|aware"],["right now, while answering","now|current|answer|moment|chat|convers"]],
+ [["examples","example|sample|show"],["of what you want","want|format|like|pattern|output|result"]],
+ [["who to act as","act|role|pretend|persona|be a|as a|play"],["told to the model","tell|give|assign|model|ai"]],
+ [["small fixes","fix|change|adjust|tweak|improv|refin|edit"],["back and forth, repeated","repeat|again|back|loop|step|round|cycle"]]],
+[[["the most it can hold","max|limit|most|size|capacity|how much"],["in mind at once","memory|mind|hold|see|at once|working|context|remember"]],
+ [["files or docs","file|doc|upload|knowledge"],["every chat in the project can read","project|every chat|all chat|shared|across"]],
+ [["looks up or retrieves","look|retriev|search|fetch|find"],["the right pieces of documents","document|doc|piece|relevant|part|data|source"],["feeds them to the model","model|feed|give|add|prompt|context"]],
+ [["text turned into numbers","number|vector|numer|math"],["similar meanings sit close","similar|close|meaning|near|related"]],
+ [["notes that are kept","note|save|store|remember|keep|record"],["after the chat ends","after|between|end|survive|persist|next|later|across"]]],
+[[["the model runs an action","action|run|do |use|call|execut|perform"],["like reading a file or searching","file|search|read|tool|web|app"]],
+ [["a doorway or interface","door|interface|connect|way|gateway|window|endpoint"],["programs talk to each other","program|software|app|system|talk|communic"]],
+ [["a ready-made link","link|connect|integrat|bridge|plug"],["between Claude and an app","app|claude|tool|service|software"]],
+ [["an open standard","standard|protocol|rule|common|universal|open"],["plugs AI into tools and data","connect|plug|tool|data|app|link"]],
+ [["looks things up online","search|look|google|online|web|internet|find"],["current information","current|latest|new|recent|today|up to date|info"]]],
+[[["takes steps or actions","step|action|act|do |task|work"],["uses tools","tool"],["to reach a goal","goal|plan|outcome|finish|achiev|complet"]],
+ [["think, act, check the result","think|plan|act|check|look|result|observ"],["repeat until done","repeat|loop|again|until|cycle|done"]],
+ [["fixed steps","fixed|set|same|predefined|order|step"],["the same way every time","every|always|each|same|recipe|predictable"]],
+ [["how much it may do","how much|can do|may do|freedom|independ|on its own|self"],["without asking","ask|permission|approv|without"]],
+ [["a person","person|human|people|owner|someone|user"],["approves key steps","approv|check|review|confirm|sign|ok"]]],
+[[["everything around the model","around|wrap|everything|structure|system|setup"],["rules, tools, memory, checks","rule|tool|memory|check|guard|hook"]],
+ [["a folder of instructions","instruct|folder|file|recipe|guide|how to"],["loaded only when needed","need|only when|on demand|load|relevant|specific"]],
+ [["a helper agent","helper|agent|assistant|specialist|worker"],["own job, limited tools","own|one job|specific|limited|focus|task"]],
+ [["code that runs automatically","automat|code|script|run|trigger"],["at set moments, can block","block|stop|before|after|event|moment|prevent"]],
+ [["a job","job|task|work"],["starts on its own at set times","schedul|time|automat|own|timer|daily|night|recurr|alarm"]]],
+[[["plain text","text|plain"],["simple marks for headings and bullets","mark|symbol|heading|bullet|format|#|style"]],
+ [["saves snapshots","snapshot|version|save|histor|track|record"],["of a folder over time","folder|file|time|change|code"]],
+ [["one saved snapshot","snapshot|save|version|record|checkpoint"],["with a short note","note|message|label|descri|comment"]],
+ [["a project folder","folder|project|files|storage|place"],["tracked by Git","git|track|histor|version"]],
+ [["sends or uploads","send|upload|push|copy|sync"],["to the cloud copy","cloud|remote|github|server|online|origin"]]],
+[[["only the access it needs","only|minimum|least|need|just enough|limit"],["access or permissions","access|permission|right|key|privilege"]],
+ [["hidden instructions","hidden|sneak|malicious|fake|trick|instruct|command"],["inside content","content|page|web|file|email|document|text|data"],["that steer the AI","steer|control|hijack|manipul|make it|trick|change"]],
+ [["a rule or check","rule|check|limit|boundar|control|guard"],["keeps actions safe","safe|prevent|stop|protect|block|harm"]],
+ [["stops and waits","stop|wait|pause|hold|block|before"],["for a yes","yes|approv|permission|confirm|sign"]],
+ [["a permanent record","record|log|list|history|track|note"],["who did what, and when","who|what|when|action|did|time"]]],
+[[["tests","test|measur|check|exam|score|grade"],["whether the AI does the job right","right|correct|well|quality|good|job|work"]],
+ [["a separate agent","separate|another|second|different|other|independ"],["reviews the work","review|check|verif|grade|inspect|test"]],
+ [["coordinating several agents","coordinat|manag|organiz|direct|conduct|control|route"],["who works, in what order","order|who|sequence|several|multiple|agents|which"]],
+ [["seeing or monitoring","see|monitor|watch|visib|track|view|log"],["what agents did and how it went","what|did|happen|how|result|went|behav"]],
+ [["owning and controlling agents","own|control|manag|govern|track|register|polic"],["every agent in the organisation","all|every|organi|company|business|fleet"]]]];
+const ALIAS={"LLM":["large language model"],"RAG":["retrieval","retrieval augmented generation"],"Repository":["repo"],"Evals":["eval","evaluation","evaluations"],"Push":["git push"],"Instructions":["system prompt","instruction"],"Markdown":["md"],"Few-shot examples":["few shot","few-shot","examples"],"Human-in-the-loop":["human in the loop"],"Scheduled task":["schedule","scheduled tasks","cron"],"AI":["artificial intelligence"],"MCP":["model context protocol"],"Agent governance":["governance"],"Checker":["evaluator"],"Memory":["memories"],"Hook":["hooks"],"Skill":["skills"],"Token":["tokens"],"Embedding":["embeddings"],"Commit":["commits"],"Agent":["ai agent"],"Subagent":["sub agent","sub-agent"]};
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9 ]+/g," ").replace(/\s+/g," ").trim();
+const lev=(a,b)=>{const m=[...Array(b.length+1).keys()];for(let i=1;i<=a.length;i++){let p=m[0];m[0]=i;for(let j=1;j<=b.length;j++){const t=m[j];m[j]=Math.min(m[j]+1,m[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return m[b.length]};
+function checkTerm(typed,t){const g=norm(typed);if(!g)return null;const opts=[t.t,...(ALIAS[t.t]||[])].map(norm);
+  for(const o of opts){if(g===o)return "right";if(lev(g,o)<=Math.max(1,Math.floor(o.length/5)))return "typo"}return "wrong"}
+function checkMeaning(typed,t){const g=" "+typed.toLowerCase()+" ";if(!g.trim())return null;const [li,ti]=t.id.split("-").map(Number);
+  const ks=KEYS[li][ti].map(([label,alts])=>({label,hit:alts.split("|").some(a=>g.includes(a))}));const n=ks.filter(k=>k.hit).length;
+  return {ks,verdict:n===ks.length?"right":n>0?"partly":"wrong"}}
+
+let S={lv:0,best:{},box:{},due:{},streak:{last:"",n:0},reports:[],feedback:[]};
+try{const s=JSON.parse(localStorage.getItem("ai-ladder-v2")||"null");if(s)S=Object.assign(S,s)}catch(e){}
+const save=()=>{try{localStorage.setItem("ai-ladder-v2",JSON.stringify(S))}catch(e){}};
+const today=()=>new Date().toISOString().slice(0,10);
+function tick(){const t=today();if(S.streak.last===t)return;const y=new Date(Date.now()-DAY).toISOString().slice(0,10);S.streak.n=S.streak.last===y?S.streak.n+1:1;S.streak.last=t;save()}
+const stars=n=>n>=5?3:n>=4?2:n>=3?1:0;
+const dueList=()=>all.filter(t=>S.due[t.id]!==undefined&&S.due[t.id]<=Date.now());
+const known=()=>all.filter(t=>(S.box[t.id]||0)>=2).length;
+const $=id=>document.getElementById(id),app=$("app");
+let view="today",sess=null,quiz=null,lastFocus=null;
+
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display="none",2200)}
+function openSheet(html,bind){lastFocus=document.activeElement;const sh=$("sheet");sh.innerHTML='<div class="handle"></div>'+html;sh.classList.add("open");$("scrim").classList.add("open");if(bind)bind(sh);const f=sh.querySelector("button,textarea,input");if(f)f.focus()}
+function closeSheet(){$("sheet").classList.remove("open");$("scrim").classList.remove("open");if(lastFocus)lastFocus.focus()}
+$("scrim").onclick=closeSheet;
+function copyText(txt,label){const done=()=>toast(label+" copied");if(window.Android&&Android.copy){Android.copy(txt);done();return}
+  const fallback=()=>openSheet(`<h3>Copy this</h3><p class="muted small">Long-press the text, then Select all and Copy.</p><textarea readonly id="cp">${esc(txt)}</textarea><div class="row"><button class="ghost" data-x>Close</button></div>`,sh=>{const ta=sh.querySelector("#cp");ta.focus();ta.select();sh.querySelector("[data-x]").onclick=closeSheet});
+  try{if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(txt).then(done,fallback);else fallback()}catch(e){fallback()}}
+
+function tagSheet(title,sub,tags,onSave){let picked=[];
+  openSheet(`<h3>${esc(title)}</h3><p class="muted small">${esc(sub)}</p><div class="tags">${tags.map(t=>`<button class="tag" aria-pressed="false">${esc(t)}</button>`).join("")}</div><textarea id="fbt" placeholder="Add a note (optional)"></textarea><div class="row"><button class="ghost" data-x>Cancel</button><button class="big" style="margin:0" data-s>Save</button></div>`,sh=>{
+    sh.querySelectorAll(".tag").forEach(b=>b.onclick=()=>{const on=b.getAttribute("aria-pressed")!=="true";b.setAttribute("aria-pressed",on);picked=on?[...picked,b.textContent]:picked.filter(x=>x!==b.textContent)});
+    sh.querySelector("[data-x]").onclick=closeSheet;
+    sh.querySelector("[data-s]").onclick=()=>{const txt=sh.querySelector("#fbt").value.trim();if(!picked.length&&!txt){toast("Pick a tag or write a note");return}onSave(picked,txt);save();closeSheet()}})}
+const report=id=>{const t=byId(id);tagSheet("Report this card",t.t+" (level "+(t.li+1)+")",["Wrong or outdated","Confusing","Analogy doesn't click","Too long"],(tags,text)=>{S.reports.push({id,term:t.t,tags,text,at:Date.now()});toast("Report saved")})};
+const feedback=()=>tagSheet("Send feedback","How is learning going?",["Too easy","Too hard","Want more levels","Something's broken","Idea"],(tags,text)=>{S.feedback.push({tags,text,at:Date.now()});toast("Feedback saved")});
+
+function termSheet(id){const t=byId(id);openSheet(`<span class="pill" style="background:${col(t.li)};color:${inkOn(t.li)}">Level ${t.li+1}</span><h2 class="lt" style="margin-top:10px;--lc:${col(t.li)}">${esc(t.t)}</h2><span class="lab">Means</span>${esc(t.d)}<span class="lab">It's like</span>${esc(t.a)}<span class="lab">At the daycare</span>${esc(t.x)}<div class="row"><button class="ghost" data-r>Report this card</button><button class="ghost" data-x>Close</button></div>`,sh=>{sh.querySelector("[data-x]").onclick=closeSheet;sh.querySelector("[data-r]").onclick=()=>{closeSheet();report(id)}})}
+
+function startPractice(extra){tick();let q=dueList();const fresh=all.filter(t=>t.li===S.lv&&S.due[t.id]===undefined);
+  q=shuffle(q).concat(fresh).slice(0,10);
+  if(!q.length)q=shuffle(all.filter(t=>t.li===S.lv));
+  sess={q:q.map(t=>t.id),i:0,shown:false,got:0,missed:[],total:q.length,rev:{}};go("practice")}
+function grade(g){const id=sess.q[sess.i];if(g===2){S.box[id]=Math.min(5,(S.box[id]||0)+1);sess.got++}else{S.box[id]=0;if(!sess.missed.includes(id)){sess.missed.push(id);sess.q.push(id)}}
+  S.due[id]=Date.now()+(g===2?INT[S.box[id]]*DAY:0);save();sess.i++;sess.shown=false;render()}
+
+const mask=(txt,term)=>{let o=txt;term.split(/\s+/).filter(w=>w.length>2).forEach(w=>{o=o.replace(new RegExp(w.replace(/[^a-z0-9]/gi,"."),"gi"),"___")});return o};
+function makeQuiz(li){const pool=shuffle(all.filter(t=>t.li===li)),kinds=shuffle(["d","a","x","tx","d"]);
+  return {li,i:0,right:0,picked:null,qs:pool.map((p,i)=>{const k=kinds[i%kinds.length],others=shuffle(all.filter(o=>o.id!==p.id&&Math.abs(o.li-p.li)<=1)).slice(0,3),opts=shuffle([p,...others]);
+    const q=k==="d"?"Which term means: "+p.d:k==="a"?"Which term is this like? "+p.a:k==="x"?"Real life: "+mask(p.x,p.t)+" What is this?":"Which is a real-life example of "+p.t+"?";
+    return{p,k,q,opts:opts.map(o=>({id:o.id,txt:k==="tx"?mask(o.x,o.t):o.t}))}})}}
+function result(t,rv){const ty=(sess.typed||{})[sess.i+":"+t.id]||"";if(!ty.trim())return null;return rv?{kind:"term",v:checkTerm(ty,t),ty}:Object.assign({kind:"mean",ty},checkMeaning(ty,t))}
+function sug(t,rv){const r=result(t,rv);if(!r)return -1;const v=r.v||r.verdict;return v==="right"||v==="typo"?2:v==="wrong"?0:-1}
+function verdictHtml(t,rv){const r=result(t,rv);if(!r)return "";
+  if(r.kind==="term"){const msg=r.v==="right"?"Correct.":r.v==="typo"?"Correct, small typo. It's spelled "+t.t+".":"Not quite. The term is "+t.t+".";return `<div class="verdict ${r.v==="wrong"?"wrong":"right"}"><strong>${esc(msg)}</strong><span class="lab">You typed</span>${esc(r.ty)}</div>`}
+  const msg=r.verdict==="right"?"You covered all the key ideas.":r.verdict==="partly"?"Partly right. Check what's missing.":"Not yet. Read the answer below, then try saying it again.";
+  return `<div class="verdict ${r.verdict}"><strong>${esc(msg)}</strong><span class="lab">Key ideas</span>${r.ks.map(k=>`<span class="ki ${k.hit?"y":"n"}">${esc(k.label)}</span>`).join("")}<span class="lab">You typed</span>${esc(r.ty)}<p class="small muted">Checked by key words. If you said it in other words, you make the final call.</p></div>`}
+const titles={today:"Today",learn:"Learn",practice:"Practice",quiz:"Quiz",more:"More"};
+function go(v){view=v;render();window.scrollTo(0,0)}
+function render(){
+  $("ttl").textContent=titles[view];$("streak").textContent=S.streak.n>0?S.streak.n+"-day streak":"Start a streak";
+  document.querySelectorAll("nav button").forEach(b=>b.dataset.v===view?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
+  document.documentElement.style.setProperty("--lc",col(S.lv));
+  const lv=S.lv,l=L[lv],d=dueList().length;
+  if(view==="today"){
+    app.innerHTML=`<h1>Climb the AI ladder</h1><p class="muted">Tap a step to choose your level.</p><div class="ladder" id="lad">${L.map((x,i)=>{const s=stars(S.best[i]||0);return `<button class="step${i===lv?" on":""}" data-l="${i}" style="height:${28+i*8}%;background:${col(i)};color:${inkOn(i)}" aria-label="Level ${i+1}: ${esc(x.name)}, ${s} stars"><b>${i+1}</b><i>${"★".repeat(s)}${"☆".repeat(3-s)}</i></button>`}).join("")}</div>
+    <h2 class="lt">Level ${lv+1}: ${esc(l.name)}</h2>
+    <button class="big" data-go="${d?"due":"learn"}">${d?"Review "+d+" due card"+(d>1?"s":""):"Learn level "+(lv+1)}</button>
+    <div class="row"><button class="ghost" data-go="practice-new">Practice level ${lv+1}</button><button class="ghost" data-go="quiz">Take the quiz</button></div>
+    <div class="stat"><div><b>${d}</b><span class="small muted">Due now</span></div><div><b>${known()}/${all.length}</b><span class="small muted">Terms known</span></div><div><b>${Object.values(S.best).reduce((a,n)=>a+stars(n),0)}/30</b><span class="small muted">Stars</span></div></div>`;
+  }else if(view==="learn"){
+    app.innerHTML=`<input type="search" id="q" placeholder="Search all ${all.length} terms" aria-label="Search terms"><div class="tags" id="lvs">${L.map((x,i)=>`<button class="tag" aria-pressed="${i===lv}" data-l="${i}" style="${i===lv?`background:${col(i)};color:${inkOn(i)}`:""}">${i+1}</button>`).join("")}</div><h2 id="lh" class="lt">Level ${lv+1}: ${esc(l.name)}</h2><div class="list" id="lst"></div><button class="big" data-go="practice-new">Practice these ${l.terms.length}</button>`;
+    const draw=v=>{v=v.trim().toLowerCase();const items=v?all.filter(t=>(t.t+" "+t.d+" "+t.a).toLowerCase().includes(v)):all.filter(t=>t.li===lv);$("lh").style.display=v?"none":"";
+      $("lst").innerHTML=items.map(t=>`<button class="item" data-t="${t.id}" style="--lc:${col(t.li)}"><h3>${esc(t.t)}</h3><span class="lab">It's like</span>${esc(t.a)}</button>`).join("")||`<p class="muted">No match. Try a shorter word, like "hook".</p>`};
+    const qi=$("q");qi.oninput=()=>draw(qi.value);draw("");
+  }else if(view==="practice"){
+    if(!sess){app.innerHTML=`<h2>Practice with self-grading</h2><p class="muted">Type your answer and the app checks it. Or skip typing and grade yourself. Cards you miss come back sooner.</p><button class="big" data-go="${d?"due":"practice-new"}">${d?"Review "+d+" due":"Start level "+(lv+1)}</button>`;return}
+    if(sess.i>=sess.q.length){const m=sess.missed.length;app.innerHTML=`<h2>Session done</h2><p style="font:800 56px/1 'Red Hat Display',Roboto,sans-serif;color:var(--lc);margin:16px 0">${sess.total-m}/${sess.total}</p><p>${m?"You'll see the "+m+" you missed again soon. That's how they stick.":"Clean run. These come back in a few days to lock them in."}</p><button class="big" data-go="today">Done</button><div class="row"><button class="ghost" data-go="practice-extra">Extra practice</button><button class="ghost" data-go="quiz">Take the quiz</button></div>`;sess=null;return}
+    const t=byId(sess.q[sess.i]);const rk=sess.i+":"+t.id;if(sess.rev[rk]===undefined)sess.rev[rk]=Math.random()<.5;const rv=sess.rev[rk];
+    app.innerHTML=`<div class="small muted">Card ${Math.min(sess.i+1,sess.q.length)} of ${sess.q.length}</div><div class="bar"><div style="width:${sess.i/sess.q.length*100}%"></div></div>${sess.shown?verdictHtml(t,rv).replace('class="verdict','style="margin:0 0 4px" class="verdict'):""}
+    <div class="card" style="--lc:${col(t.li)}"><span class="small muted">Level ${t.li+1}${rv?" · name the term":""}</span>${rv?(sess.shown?`<div class="term">${esc(t.t)}</div><span class="lab">Means</span>${esc(t.d)}`:`<span class="lab">It's like</span><div style="font-size:20px">${esc(t.a)}</div><span class="lab">Real life</span>${esc(mask(t.x,t.t))}<p class="muted">What's the term?</p>`):`<div class="term">${esc(t.t)}</div>${sess.shown?`<span class="lab">Means</span>${esc(t.d)}<span class="lab">It's like</span>${esc(t.a)}<span class="lab">At the daycare</span>${esc(t.x)}`:`<p class="muted">What does it mean? What is it like?</p>`}`}</div>
+    ${sess.shown?`<div class="grade"><button class="g0${sug(t,rv)===0?" sug":""}" data-g="0">Missed it</button><button class="g1" data-g="1">I don't know</button><button class="g2${sug(t,rv)===2?" sug":""}" data-g="2">Got it</button></div>`:(rv?`<input class="ans" id="ans" autocomplete="off" autocapitalize="none" placeholder="Type the term">`:`<textarea class="ans" id="ans" placeholder="Type what it means, in your own words"></textarea>`)+`<button class="big" data-check>Check my answer</button><button class="link" data-show>Skip typing and show answer</button>`}
+    <button class="link" data-rep="${t.id}">Report this card</button>`;
+  }else if(view==="quiz"){
+    if(!quiz||quiz.li!==lv)quiz=makeQuiz(lv);
+    const n=quiz.qs.length;
+    if(quiz.i>=n){S.best[lv]=Math.max(S.best[lv]||0,quiz.right);save();
+      app.innerHTML=`<h2>Level ${lv+1} quiz</h2><p style="font:800 56px/1 'Red Hat Display',Roboto,sans-serif;color:var(--lc);margin:16px 0">${quiz.right}/${n}</p><p>${quiz.right===n?"Perfect. You've earned the next step.":"Practice the ones you missed, then retake it."}</p>${lv<9?`<button class="big" data-next>Go to level ${lv+2}</button>`:""}<div class="row"><button class="ghost" data-retake>Retake with new order</button><button class="ghost" data-go="practice-new">Practice</button></div>`;return}
+    const q=quiz.qs[quiz.i];
+    app.innerHTML=`<div class="small muted">Level ${lv+1} · question ${quiz.i+1} of ${n}</div><div class="bar"><div style="width:${quiz.i/n*100}%"></div></div><h3 style="font-weight:500;margin:8px 0 4px">${esc(q.q)}</h3>${q.opts.map(o=>{let c="";if(quiz.picked){if(o.id===q.p.id)c=" right";else if(o.id===quiz.picked)c=" wrong"}return `<button class="opt${c}" data-o="${o.id}"${quiz.picked?" disabled":""}>${esc(o.txt)}</button>`}).join("")}
+    ${quiz.picked?`<div class="fb"><strong>${quiz.picked===q.p.id?"Right.":"Not quite. It's "+esc(q.p.t)+"."}</strong><span class="lab">Means</span>${esc(q.p.d)}<span class="lab">It's like</span>${esc(q.p.a)}<span class="lab">At the daycare</span>${esc(q.p.x)}</div><button class="big" data-nq>${quiz.i+1<n?"Next question":"See score"}</button><button class="link" data-rep="${q.p.id}">Report this card</button>`:""}`;
+  }else{
+    const r=S.reports.length,f=S.feedback.length;
+    app.innerHTML=`<h2>Help shape the app</h2><p class="muted">Your feedback and card reports stay on this phone. Copy them and paste into Claude, and the next version gets fixed.</p><button class="big" data-fb>Send feedback</button><div class="row"><button class="ghost" data-cpf>Copy feedback for Claude (${r+f})</button></div>
+    <h2 style="margin-top:28px">Backup</h2><p class="muted">Your progress lives only in this app. Copy a backup before reinstalling.</p><div class="row"><button class="ghost" data-bk>Copy backup</button><button class="ghost" data-rs>Restore</button></div>
+    <h2 style="margin-top:28px">About</h2><p class="muted small">AI Learning Ladder, web version ${WEBVER}. ${all.length} terms in 10 levels. Practice uses spaced repetition: cards you know come back after 1, 3, 7, 14, then 30 days.</p><button class="link" data-reset>Reset all progress</button>`;
+  }
+}
+function fbText(){return "AI Learning Ladder feedback\n\nCard reports:\n"+(S.reports.map(r=>`- ${r.term}: ${r.tags.join(", ")}${r.text?" | "+r.text:""}`).join("\n")||"- none")+"\n\nGeneral feedback:\n"+(S.feedback.map(f=>`- ${f.tags.join(", ")}${f.text?" | "+f.text:""}`).join("\n")||"- none")}
+app.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const ds=b.dataset;
+  if(ds.l!==undefined){S.lv=+ds.l;quiz=null;save();render()}
+  else if(ds.go){const g=ds.go;if(g==="due")startPractice(false);else if(g==="practice-new"){tick();sess={q:shuffle(all.filter(t=>t.li===S.lv)).map(t=>t.id),i:0,shown:false,got:0,missed:[],total:5,rev:{}};go("practice")}else if(g==="practice-extra"){tick();sess={q:shuffle(all.filter(t=>t.li===S.lv)).map(t=>t.id),i:0,shown:false,got:0,missed:[],total:5,rev:{}};render()}else{if(g==="quiz")quiz=null;go(g)}}
+  else if(ds.t)termSheet(ds.t);
+  else if(ds.check!==undefined||ds.show!==undefined){const a=$("ans"),t=byId(sess.q[sess.i]);if(ds.check!==undefined&&a&&a.value.trim()){sess.typed=sess.typed||{};sess.typed[sess.i+":"+t.id]=a.value}sess.shown=true;render()}
+  else if(ds.g!==undefined)grade(+ds.g);
+  else if(ds.rep)report(ds.rep);
+  else if(ds.o&&!quiz.picked){tick();const q=quiz.qs[quiz.i];quiz.picked=ds.o;if(ds.o===q.p.id)quiz.right++;else{S.box[q.p.id]=0;S.due[q.p.id]=Date.now();save()}render()}
+  else if(ds.nq!==undefined){quiz.i++;quiz.picked=null;render()}
+  else if(ds.retake!==undefined){quiz=makeQuiz(S.lv);render()}
+  else if(ds.next!==undefined){S.lv=Math.min(9,S.lv+1);quiz=null;save();go("learn")}
+  else if(ds.fb!==undefined)feedback();
+  else if(ds.cpf!==undefined)copyText(fbText(),"Feedback");
+  else if(ds.bk!==undefined)copyText(JSON.stringify(S),"Backup");
+  else if(ds.rs!==undefined)openSheet(`<h3>Restore a backup</h3><p class="muted small">Paste the backup text you copied earlier. This replaces your current progress.</p><textarea id="rt"></textarea><div class="row"><button class="ghost" data-x>Cancel</button><button class="big" style="margin:0" data-ok>Restore</button></div>`,sh=>{sh.querySelector("[data-x]").onclick=closeSheet;sh.querySelector("[data-ok]").onclick=()=>{try{const o=JSON.parse(sh.querySelector("#rt").value);if(!o||typeof o!=="object"||!o.box)throw 0;S=Object.assign(S,o);save();closeSheet();render();toast("Backup restored")}catch(err){toast("That text isn't a backup. Copy it again.")}}});
+  else if(ds.reset!==undefined)openSheet(`<h3>Reset all progress?</h3><p class="muted">Scores, due cards and streak are cleared. Copy a backup first if you might want them.</p><div class="row"><button class="ghost" data-x>Keep progress</button><button class="big" style="margin:0;background:var(--bad);color:#fff" data-ok>Reset</button></div>`,sh=>{sh.querySelector("[data-x]").onclick=closeSheet;sh.querySelector("[data-ok]").onclick=()=>{S={lv:0,best:{},box:{},due:{},streak:{last:"",n:0},reports:S.reports,feedback:S.feedback};save();closeSheet();go("today");toast("Progress reset")}});
+});
+$("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.v==="quiz")quiz=null;go(b.dataset.v)});
+app.addEventListener("keydown",e=>{if(e.target.id==="ans"&&e.target.tagName==="INPUT"&&e.key==="Enter"){e.preventDefault();const b=app.querySelector("[data-check]");if(b)b.click()}});
+let sx=null;app.addEventListener("touchstart",e=>{sx=e.touches[0].clientX},{passive:true});
+app.addEventListener("touchend",e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(view==="practice"&&sess&&!sess.shown&&Math.abs(dx)>60){sess.shown=true;render()}},{passive:true});
+window.appBack=()=>{if($("sheet").classList.contains("open")){closeSheet();return true}if(view!=="today"){go("today");return true}return false};
+render();
+
+}
+</script>
+</body>
+</html>
